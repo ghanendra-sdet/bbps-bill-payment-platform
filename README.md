@@ -191,7 +191,8 @@ Sample test execution reports and defect report templates are available under
 bbps-bill-payment-platform/
 ├── README.md
 ├── docs/
-│   └── business-overview.md      → What BBPS is, glossary, biller-integration risk model
+│   ├── business-overview.md      → What BBPS is, glossary, biller-integration risk model
+│   └── shared-platform-services.md → Company-wide services this product depends on (Auth, Settlement/Reconciliation Engines, etc.)
 ├── test-cases/
 │   └── regression-checklist.md   → Full regression suite + edge cases
 ├── automation/
