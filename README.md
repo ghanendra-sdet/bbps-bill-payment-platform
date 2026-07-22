@@ -203,3 +203,11 @@ bbps-bill-payment-platform/
 └── test-reports/
     └── regression-execution-summary.md → Sample regression test execution report
 ```
+
+## 🤖 Support & Dispute Resolution
+
+BBPS issues (bill-fetch failures, payment disputes, account detail changes) are handled by the
+shared [AI Dispute Resolution Engine](https://github.com/ghanendra-sdet/ai-dispute-resolution-engine)
+— a single AI-powered support layer common across Collection, Payout, Connected Banking, BBPS,
+and YOBO. It resolves ~80% of issues without human involvement, cutting average ticket resolution
+time from a 24–72 hour baseline to under 6 hours.
