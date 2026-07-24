@@ -29,3 +29,7 @@
 The regression cycle surfaced the module's characteristic risk area — stale bill amounts — as
 both a fetch-side and payment-side gap, consistent with why biller-integration failure modes are
 treated as first-class regression scenarios for BBPS rather than edge cases.
+
+**See also:** [`docs/business-overview.md`](./docs/business-overview.md) sections 3–4 for the
+payment-rail model and biller-risk framing behind this test structure, and
+[`sample-defect-report.md`](./sample-defect-report.md) for the full worked defect examples.

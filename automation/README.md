@@ -1,5 +1,9 @@
 # BBPS — Automation Framework
 
+> Automated scenarios trace directly to [`../regression-checklist.md`](../regression-checklist.md)
+> sections 1–2 (core flow + payment rail selection). See [`../docs/README.md`](../docs/README.md)
+> for the full documentation map.
+
 Automation for the BBPS bill fetch-to-payment journey, built with **Cypress + JavaScript**.
 
 ## Why Cypress

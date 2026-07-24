@@ -9,6 +9,10 @@
 > All content here uses **generic/sample data only**. No client names, company names, or
 > confidential/production information are included. Dates and timelines are placeholders —
 > update `[Timeline]` before publishing.
+>
+> 📍 **New here?** [`docs/README.md`](./docs/README.md) is a documentation map answering "what is
+> this, how does it work, who's involved, what does it depend on" — with a recommended reading
+> order through every doc in this repo.
 
 ---
 
@@ -24,6 +28,10 @@
 8. [Regression Checklist](#-regression-checklist)
 9. [Screenshots & Reports](#-screenshots--reports)
 10. [Repository Structure](#-repository-structure)
+
+> Deeper dives not covered inline in this README: [Stakeholders & Dependencies](./docs/business-overview.md),
+> [Shared Platform Services](./docs/shared-platform-services.md), [UI Consistency](./docs/ui-consistency.md)
+> — see [`docs/README.md`](./docs/README.md) for the full map.
 
 ---
 
@@ -110,7 +118,20 @@ Bill Fetch (live call to biller for current outstanding amount)
       ├──▶ Biller timeout / error ──▶ Clear error shown, no stale amount charged
       │
       ▼
-Bill Payment (user pays the fetched amount)
+Payment Rail Resolved
+      │
+      ├──▶ Merchant has active Payout/Connected Banking service
+      │         │
+      │         ▼
+      │    Internal Payout/Connected Banking Rail ──▶ Lower service charge
+      │
+      └──▶ No active internal rail
+                │
+                ▼
+           External Payment Gateway (PhonePe PG / Razorpay PG / Cashfree PG) ──▶ Standard gateway fee
+      │
+      ▼
+Bill Payment (user pays the fetched amount, via whichever rail was resolved)
       │
       ▼
 Transaction Status (tracked to a definitive success/failure state)
@@ -119,12 +140,15 @@ Transaction Status (tracked to a definitive success/failure state)
 Settlement (funds settle between platform and biller)
       │
       ▼
-Reports (payment history & reconciliation)
+Reports (payment history, fee breakdown by rail, & reconciliation)
 ```
 
 **Key testing principle:** the amount charged at payment time must always match the amount
 fetched — if any time passes between fetch and payment, the platform must either re-validate the
-amount or clearly flag it as potentially stale, never silently charge an outdated figure.
+amount or clearly flag it as potentially stale, never silently charge an outdated figure. **Also**
+verify the correct payment rail (internal vs. external PG) is selected and the correct
+corresponding fee is applied — see [`docs/business-overview.md`](./docs/business-overview.md)
+section 3 for the full rationale.
 
 ### Admin Functions
 
@@ -173,41 +197,51 @@ data.
 - [ ] Transaction Status
 - [ ] Settlement
 - [ ] Reports
+- [ ] UI Consistency (status representation, formatting, terminology, accessibility)
 
-Full checklist with edge cases available in [`test-cases/`](./test-cases).
+Full checklist with edge cases available in [`regression-checklist.md`](./regression-checklist.md).
 
 ---
 
 ## 📸 Screenshots & Reports
 
-Sample test execution reports and defect report templates are available under
-[`test-reports/`](./test-reports) and [`bug-reports/`](./bug-reports).
+Sample test execution reports and defect report templates are available in
+[`regression-execution-summary.md`](./regression-execution-summary.md) and
+[`sample-defect-report.md`](./sample-defect-report.md).
 
 ---
 
 ## 📁 Repository Structure
 
+> **New here?** Start with [`docs/README.md`](./docs/README.md) — a documentation map that
+> answers "what is this, how does it work, who's involved, what does it depend on" and points to
+> exactly the right doc for each question.
+
 ```
 bbps-bill-payment-platform/
 ├── README.md
+├── regression-checklist.md          → Full regression suite + edge cases
+├── sample-defect-report.md          → Defect theme taxonomy + worked defect examples
+├── regression-execution-summary.md  → Sample regression test execution report
 ├── docs/
-│   ├── business-overview.md      → What BBPS is, glossary, biller-integration risk model
-│   └── shared-platform-services.md → Company-wide services this product depends on (Auth, Settlement/Reconciliation Engines, etc.)
-├── test-cases/
-│   └── regression-checklist.md   → Full regression suite + edge cases
-├── automation/
-│   ├── README.md                 → Framework setup & structure
-│   └── sample-bill-payment.spec.ts → Sample Cypress test (dummy data)
-├── bug-reports/
-│   └── sample-defect-report.md   → Defect report template with dummy example
-└── test-reports/
-    └── regression-execution-summary.md → Sample regression test execution report
+│   ├── README.md                    → 📍 Documentation map — start here
+│   ├── business-overview.md         → What BBPS is, stakeholders, dependencies, glossary, biller-risk model
+│   ├── shared-platform-services.md  → Company-wide services this product depends on (Auth, Settlement/Reconciliation Engines, etc.)
+│   └── ui-consistency.md            → Cross-screen UI/UX consistency (status representation, formatting, a11y)
+└── automation/
+    ├── README.md                    → Framework setup & structure
+    └── sample-bill-payment.spec.ts  → Sample Cypress test (dummy data)
 ```
+
+> **Note on structure:** `bug-reports/`, `test-cases/`, and `test-reports/` were originally
+> separate folders, each holding a single file — flattened to the repo root since a folder
+> holding exactly one file adds navigation overhead without organizing anything. `docs/` and
+> `automation/` remain folders because each genuinely groups multiple related files.
 
 ## 🤖 Support & Dispute Resolution
 
 BBPS issues (bill-fetch failures, payment disputes, account detail changes) are handled by the
 shared [AI Dispute Resolution Engine](https://github.com/ghanendra-sdet/ai-dispute-resolution-engine)
 — a single AI-powered support layer common across Collection, Payout, Connected Banking, BBPS,
-and YOBO. It resolves ~80% of issues without human involvement, cutting average ticket resolution
+Reseller, and YOBO. It resolves ~80% of issues without human involvement, cutting average ticket resolution
 time from a 24–72 hour baseline to under 6 hours.

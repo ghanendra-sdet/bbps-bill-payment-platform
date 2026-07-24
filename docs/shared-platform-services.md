@@ -60,11 +60,23 @@ product initiated the change.
   settlement infrastructure other products use, rather than BBPS running its own independent
   settlement logic
 - **Commercial Engine** — any convenience fee charged on top of a fetched bill amount goes
-  through the same shared commercial calculation layer as Collection and Payout's fees
+  through the same shared commercial calculation layer as Collection and Payout's fees — this now
+  includes two different fee schedules depending on payment rail (see
+  [`business-overview.md`](./business-overview.md) section 3)
 - **Notification Service** — payment confirmations and bill-fetch failure notices flow through
   the shared notification layer
 - **Scheduler / Background Workers** — biller reconciliation and any scheduled bill-fetch retry
   logic likely runs on the same shared async infrastructure used platform-wide
+
+## Direct Product Dependency: Payout Engine & Connected Banking (Not "Shared Platform," But Related)
+
+Beyond the shared engines above, BBPS has a direct **product-to-product** dependency worth
+calling out separately: bill payments can execute through the **Payout Engine** or **Connected
+Banking** as an internal, lower-fee rail instead of an external Payment Gateway (see
+[`business-overview.md`](./business-overview.md) section 3). This is not a "shared service" in
+the same sense as the engines above — it's BBPS calling into another product's own transfer
+capability directly. A regression in Payout's or Connected Banking's transfer execution could
+therefore surface as a BBPS payment defect, even though the shared engines above are unaffected.
 
 ## Platform Summary (Company-Wide Context)
 
@@ -85,5 +97,7 @@ internal service breakdown in this portfolio; its module-level view is in
 When scoping regression for a change to any shared service, ask: *which other products also
 depend on this service?* For BBPS specifically, the Settlement Engine and Reconciliation Engine
 are the dependencies most worth flagging — a regression there could silently produce the kind of
-biller-settlement mismatch documented in [`bug-reports/`](../bug-reports), even if nothing in
-BBPS's own bill-fetch/payment code changed.
+biller-settlement mismatch documented in [`../sample-defect-report.md`](../sample-defect-report.md),
+even if nothing in BBPS's own bill-fetch/payment code changed. The direct Payout Engine/Connected
+Banking dependency above has the same property in reverse: a Payout regression could surface as
+a BBPS defect first, if BBPS-originated transfers are what a QA team notices failing.
