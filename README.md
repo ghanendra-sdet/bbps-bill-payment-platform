@@ -29,9 +29,13 @@
 9. [Screenshots & Reports](#-screenshots--reports)
 10. [Repository Structure](#-repository-structure)
 
-> Deeper dives not covered inline in this README: [Stakeholders & Dependencies](./docs/business-overview.md),
+> Deeper dives not covered inline in this README: [Modules, Submodules & Stakeholders](./docs/business-overview.md),
+> [Architecture, Flow & Real Sequence Diagrams](./docs/architecture-and-flow.md),
+> [Full Tech Stack & Skills Demonstrated](./docs/tech-and-skills.md),
 > [Shared Platform Services](./docs/shared-platform-services.md), [UI Consistency](./docs/ui-consistency.md)
-> — see [`docs/README.md`](./docs/README.md) for the full map.
+> — see [`docs/README.md`](./docs/README.md) for the full map. **Every diagram in this repo is
+> drawn in Mermaid and renders natively right here on GitHub — nothing requires visiting another
+> site.**
 
 ---
 
@@ -88,10 +92,14 @@ across bill fetch accuracy, payment processing, and settlement reconciliation.
 | Category | Tools |
 |---|---|
 | **UI Automation** | Cypress, JavaScript |
-| **API Testing** | Postman |
+| **API Testing & Automation** | Postman |
+| **Performance Testing** | k6 (bill-fetch load/spike testing around biller due-date clustering) |
 | **CI/CD** | Jenkins / GitHub Actions |
-| **Bug Tracking** | JIRA |
+| **Bug Tracking & Traceability** | JIRA, RTM (Requirement Traceability Matrix — see [`sample-rtm.md`](./sample-rtm.md)) |
 | **Version Control** | Git, GitHub |
+
+> Full detail on *why* each tool was chosen, a skill → proof map, and the performance testing
+> approach in depth: [`docs/tech-and-skills.md`](./docs/tech-and-skills.md).
 
 ---
 
@@ -103,44 +111,27 @@ across bill fetch accuracy, payment processing, and settlement reconciliation.
 - **Negative Testing** — biller timeout during fetch, stale bill amount at payment time, invalid
   biller reference
 - **Reconciliation Testing** — settlement totals vs. payment totals
+- **Performance Testing** — bill-fetch load and spike testing around biller due-date traffic
+  clustering, validated with k6 (see [`docs/tech-and-skills.md`](./docs/tech-and-skills.md)
+  section 5)
 - **Smoke & Sanity Testing** — post-deployment health checks
 
 ---
 
 ## 🔄 How It Works — Bill Payment Flow
 
-```
-Bill Categories (user selects: electricity, water, gas, DTH, etc.)
-      │
-      ▼
-Bill Fetch (live call to biller for current outstanding amount)
-      │
-      ├──▶ Biller timeout / error ──▶ Clear error shown, no stale amount charged
-      │
-      ▼
-Payment Rail Resolved
-      │
-      ├──▶ Merchant has active Payout/Connected Banking service
-      │         │
-      │         ▼
-      │    Internal Payout/Connected Banking Rail ──▶ Lower service charge
-      │
-      └──▶ No active internal rail
-                │
-                ▼
-           External Payment Gateway (PhonePe PG / Razorpay PG / Cashfree PG) ──▶ Standard gateway fee
-      │
-      ▼
-Bill Payment (user pays the fetched amount, via whichever rail was resolved)
-      │
-      ▼
-Transaction Status (tracked to a definitive success/failure state)
-      │
-      ▼
-Settlement (funds settle between platform and biller)
-      │
-      ▼
-Reports (payment history, fee breakdown by rail, & reconciliation)
+```mermaid
+flowchart TD
+    A["Bill Categories<br/>user selects: electricity, water, gas, DTH, etc."] --> B["Bill Fetch<br/>live call to biller for current outstanding amount"]
+    B -->|timeout/error| B1["Clear error shown — no stale amount charged"]
+    B --> C{"Payment Rail Resolved"}
+    C -->|Merchant has active Payout/Connected Banking service| D["Internal Payout/Connected Banking Rail<br/>→ Lower service charge"]
+    C -->|No active internal rail| E["External Payment Gateway<br/>PhonePe PG / Razorpay PG / Cashfree PG<br/>→ Standard gateway fee"]
+    D --> F["Bill Payment<br/>user pays the fetched amount"]
+    E --> F
+    F --> G["Transaction Status<br/>tracked to a definitive success/failure state"]
+    G --> H["Settlement<br/>funds settle between platform and biller"]
+    H --> I["Reports<br/>payment history, fee breakdown by rail, & reconciliation"]
 ```
 
 **Key testing principle:** the amount charged at payment time must always match the amount
@@ -148,7 +139,9 @@ fetched — if any time passes between fetch and payment, the platform must eith
 amount or clearly flag it as potentially stale, never silently charge an outdated figure. **Also**
 verify the correct payment rail (internal vs. external PG) is selected and the correct
 corresponding fee is applied — see [`docs/business-overview.md`](./docs/business-overview.md)
-section 3 for the full rationale.
+section 3 for the full rationale and [`docs/architecture-and-flow.md`](./docs/architecture-and-flow.md)
+for the full set of sequence diagrams, including exactly how a stale-amount charge and a
+wrong-rail routing defect actually happen under the hood.
 
 ### Admin Functions
 
@@ -171,7 +164,9 @@ section 3 for the full rationale.
 
 ## 🤖 Automation Approach
 
-Automation is built with **Cypress + JavaScript**, covering the fetch-to-payment journey.
+Automation is built with **Cypress + JavaScript**, covering the fetch-to-payment journey, backed
+by Postman API coverage and k6 for bill-fetch load/spike testing (see
+[`docs/tech-and-skills.md`](./docs/tech-and-skills.md) section 5).
 
 ### Priority Automated Scenarios
 
@@ -181,6 +176,7 @@ Automation is built with **Cypress + JavaScript**, covering the fetch-to-payment
 4. Bill payment against a freshly fetched amount
 5. Transaction status polling
 6. Settlement reconciliation check
+7. Bill-fetch load/spike testing around biller due-date clustering (k6)
 
 See [`automation/`](./automation) for the framework README and a sample spec file using dummy
 data.
@@ -205,9 +201,9 @@ Full checklist with edge cases available in [`regression-checklist.md`](./regres
 
 ## 📸 Screenshots & Reports
 
-Sample test execution reports and defect report templates are available in
-[`regression-execution-summary.md`](./regression-execution-summary.md) and
-[`sample-defect-report.md`](./sample-defect-report.md).
+Sample test execution reports, defect report templates, and a worked Requirement Traceability
+Matrix are available in [`regression-execution-summary.md`](./regression-execution-summary.md),
+[`sample-defect-report.md`](./sample-defect-report.md), and [`sample-rtm.md`](./sample-rtm.md).
 
 ---
 
@@ -222,10 +218,15 @@ bbps-bill-payment-platform/
 ├── README.md
 ├── regression-checklist.md          → Full regression suite + edge cases
 ├── sample-defect-report.md          → Defect theme taxonomy + worked defect examples
+├── sample-rtm.md                    → Worked Requirement Traceability Matrix, including real coverage gaps
 ├── regression-execution-summary.md  → Sample regression test execution report
 ├── docs/
 │   ├── README.md                    → 📍 Documentation map — start here
-│   ├── business-overview.md         → What BBPS is, stakeholders, dependencies, glossary, biller-risk model
+│   ├── business-overview.md         → What BBPS is, modules/submodules, stakeholders, dependencies, glossary
+│   ├── architecture-and-flow.md     → Real Mermaid sequence/flow diagrams: fetch, stale-amount guard,
+│   │                                    rail selection, biller timeout, settlement — using the real
+│   │                                    BBPCU/BBPOU/COU/BOU Bharat Connect participant structure
+│   ├── tech-and-skills.md           → Full tech stack (with why), skill → proof map, CI/CD shape, performance depth
 │   ├── shared-platform-services.md  → Company-wide services this product depends on (Auth, Settlement/Reconciliation Engines, etc.)
 │   └── ui-consistency.md            → Cross-screen UI/UX consistency (status representation, formatting, a11y)
 └── automation/
