@@ -11,14 +11,21 @@ Consumers pay dozens of different bills — electricity, water, gas, DTH, teleco
 traditionally on the biller's own separate portal. BBPS standardizes this into one payment rail:
 a platform integrated with BBPS can let a user pay any registered biller's bill in one place.
 
-## 2. Core Modules
+## 2. Core Modules and Their Submodules
 
-- **Bill Categories** — the taxonomy of biller types offered (electricity, water, gas, DTH, etc.)
-- **Bill Fetch** — a real-time call to the biller to retrieve the current outstanding amount
-- **Bill Payment** — the actual payment against a fetched bill
-- **Transaction Status** — tracks the payment to a definitive success/failure state
-- **Settlement** — the financial reconciliation between the platform and the biller
-- **Reports** — payment history and settlement reporting
+The bullet list below names *what* exists. This table adds the submodule-level detail a test
+plan or automation suite actually needs, plus which skill category (see
+[`tech-and-skills.md`](./tech-and-skills.md)) is the primary way each module gets tested.
+
+| Module | Submodules / Key Components | Responsible For | Primarily Tested Via |
+|---|---|---|---|
+| **Bill Categories** | Category Taxonomy · Biller Directory per Category | The taxonomy of biller types offered (electricity, water, gas, DTH, etc.) — Bharat Connect spans 25+ categories and 22,000+ billers platform-wide | UI Automation |
+| **Bill Fetch** | Live Fetch Call (via BBPCU → biller's BOU) · Freshness-Window Timer | A real-time lookup of the current outstanding amount — see [`architecture-and-flow.md`](./architecture-and-flow.md) sections 1–2 for exactly how this routes through Bharat Connect's real participant structure | API Testing |
+| **Bill Payment** | Payment Execution · Stale-Amount Guard | The actual payment against a fetched bill, gated by the freshness check (section 4 below) | API Testing + Functional Testing |
+| **Payment Rail Resolver** | Live Eligibility Check (Payout/Connected Banking) · Fee Calculation per Rail | Deciding, at the moment of payment, whether this merchant's bill routes through the internal rail or an external Gateway (section 3) | API Testing |
+| **Transaction Status** | Status State Machine · Ambiguous/Pending Handling | Tracking a payment to a definitive success/failure state, without ever guessing in the meantime | Functional Testing |
+| **Settlement** | Settlement Batch Processing | The financial reconciliation between the platform and the biller | Data-Level Testing |
+| **Reports** | Payment History · Rail-Attribution Breakdown | Payment history and settlement reporting, including which rail (internal vs. external) each transaction used | API Testing |
 
 ## 3. Payment Execution: Gateway vs. Internal Payout Rail
 
@@ -84,7 +91,11 @@ internal testing and still fail in production the moment one biller (or one PG) 
 | **Bill Fetch** | The real-time lookup of a bill's current outstanding amount |
 | **Stale Amount** | A previously fetched bill amount that may no longer be accurate by payment time |
 | **Settlement** | The reconciliation of funds between the platform and the biller after payment |
-| **BBPS** | Bharat Bill Payment System — the standardized ecosystem this platform integrates with |
+| **BBPS / Bharat Connect** | Bharat Bill Payment System — rebranded **Bharat Connect** by NPCI in late 2024. Same underlying infrastructure, settlement rails, and biller network as before; a name change, not an architecture change |
+| **BBPCU** | Bharat Bill Pay Central Unit — operated by NPCI Bharat BillPay Ltd (NBBL); sets the rules, runs the central clearing/settlement platform every fetch and payment is mediated through |
+| **BBPOU** | Bharat Bill Payment Operating Unit — a bank or authorized non-bank participant connecting to the BBPCU, as a COU, a BOU, or both |
+| **COU** | Customer Operating Unit — the customer-facing BBPOU role. This platform operates as a COU (see [`architecture-and-flow.md`](./architecture-and-flow.md) section 1) |
+| **BOU** | Biller Operating Unit — the biller-facing BBPOU role; each biller connects to the BBPCU through one |
 | **Payment Gateway (PG)** | An external, third-party payment processor (e.g. PhonePe PG, Razorpay PG, Cashfree PG) used when the internal rail isn't available |
 | **Internal Payout Rail** | Routing a bill payment through the platform's own Payout/Connected Banking service instead of an external PG, at a lower fee |
 
