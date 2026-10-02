@@ -29,7 +29,8 @@ user to refetch if enough time has passed — never charge a potentially outdate
 
 **Actual Result**
 The payment proceeds with the stale ₹850 figure with no re-validation, even though the freshness
-window has clearly elapsed.
+window has clearly elapsed. See [`docs/architecture-and-flow.md`](./docs/architecture-and-flow.md)
+section 2 for this exact mechanism shown as a sequence diagram.
 
 **Impact**
 Risk of overpayment or underpayment relative to the biller's true current balance — a direct
@@ -64,7 +65,9 @@ service fee.
 The payment is routed through the external Payment Gateway and charged the standard (higher) fee
 — the rail-selection check only looks at whether the merchant has *ever* had a Payout account,
 not whether that service is *currently active*, so a merchant whose Payout eligibility was
-recently reinstated after a lapse is incorrectly still routed externally.
+recently reinstated after a lapse is incorrectly still routed externally. See
+[`docs/architecture-and-flow.md`](./docs/architecture-and-flow.md) section 3 for this exact
+mechanism shown as a flowchart.
 
 **Impact**
 Merchants are overcharged relative to what they're commercially entitled to, and internal

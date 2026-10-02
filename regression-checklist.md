@@ -24,7 +24,10 @@
 
 > Derived from [`docs/business-overview.md`](./docs/business-overview.md) section 3 — a merchant
 > already using Payout/Connected Banking gets a lower fee routing through that internal rail
-> instead of an external Payment Gateway.
+> instead of an external Payment Gateway. See
+> [`docs/architecture-and-flow.md`](./docs/architecture-and-flow.md) section 3 for this exact
+> guarantee shown as a flowchart, including the live-vs-cached-check mechanism behind
+> `BUG-BBPS-1122` in [`sample-defect-report.md`](./sample-defect-report.md).
 
 | ID | Scenario | Steps | Expected Result |
 |---|---|---|---|
