@@ -2,7 +2,10 @@
 
 > Automated scenarios trace directly to [`../regression-checklist.md`](../regression-checklist.md)
 > sections 1–2 (core flow + payment rail selection). See [`../docs/README.md`](../docs/README.md)
-> for the full documentation map.
+> for the full documentation map, [`../docs/architecture-and-flow.md`](../docs/architecture-and-flow.md)
+> for the sequence diagrams each scenario below is built to validate, and
+> [`../docs/tech-and-skills.md`](../docs/tech-and-skills.md) section 5 for a worked, illustrative
+> k6 spike-test script plus the full performance testing approach for this domain.
 
 Automation for the BBPS bill fetch-to-payment journey, built with **Cypress + JavaScript**.
 
@@ -24,6 +27,8 @@ automation/
 │   ├── fixtures/
 │   │   └── dummy-biller-response.json
 │   └── support/
+└── k6/
+    └── bill-fetch-due-date-spike.js   ← bill-fetch load/spike testing around biller due-date clustering
 ```
 
 > This repo currently includes one representative sample (`sample-bill-payment.spec.ts`, written
@@ -44,3 +49,5 @@ All automation uses **dummy data only**:
 4. Bill payment against a freshly fetched amount
 5. Transaction status polling
 6. Settlement reconciliation check
+7. Bill-fetch load/spike testing around due-date clustering (k6 — see
+   [`../docs/tech-and-skills.md`](../docs/tech-and-skills.md) section 5)
