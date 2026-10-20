@@ -28,6 +28,7 @@
 8. [Regression Checklist](#-regression-checklist)
 9. [Screenshots & Reports](#-screenshots--reports)
 10. [Repository Structure](#-repository-structure)
+11. [Support & Dispute Resolution](#-support--dispute-resolution)
 
 > Deeper dives not covered inline in this README: [Modules, Submodules & Stakeholders](./docs/business-overview.md),
 > [Architecture, Flow & Real Sequence Diagrams](./docs/architecture-and-flow.md),
@@ -41,13 +42,13 @@
 
 ## 💡 What is BBPS?
 
-**BBPS (Bharat Bill Payment System)** is a standardized bill payment ecosystem — a platform that
+**BBPS (Bharat Bill Payment System)** is a standardized bill payment ecosystem. A platform that
 integrates with BBPS lets end users pay bills from any registered biller (electricity, water,
 gas, DTH, telecom, etc.) through one consistent interface, instead of visiting each biller's own
 portal.
 
-If you're new to fintech QA, HR, or any non-technical role: think of it as a universal bill-pay
-counter. The platform doesn't own the billers' data — it fetches live bill amounts from each
+If you're new to fintech QA, HR, or any non-technical role, think of it as a universal bill-pay
+counter. The platform doesn't own the billers' data. It fetches live bill amounts from each
 biller in real time, so a core testing challenge is that **the platform is only as reliable as
 the biller integrations behind it**, several of which the team doesn't control.
 
@@ -122,21 +123,33 @@ across bill fetch accuracy, payment processing, and settlement reconciliation.
 
 ```mermaid
 flowchart TD
-    A["Bill Categories<br/>user selects: electricity, water, gas, DTH, etc."] --> B["Bill Fetch<br/>live call to biller for current outstanding amount"]
-    B -->|timeout/error| B1["Clear error shown — no stale amount charged"]
-    B --> C{"Payment Rail Resolved"}
-    C -->|Merchant has active Payout/Connected Banking service| D["Internal Payout/Connected Banking Rail<br/>→ Lower service charge"]
-    C -->|No active internal rail| E["External Payment Gateway<br/>PhonePe PG / Razorpay PG / Cashfree PG<br/>→ Standard gateway fee"]
-    D --> F["Bill Payment<br/>user pays the fetched amount"]
+    A["📋 Bill Categories<br/>user selects: electricity, water, gas, DTH, etc."] --> B["🔍 Bill Fetch<br/>live call to biller for current outstanding amount"]
+    B -->|timeout/error| B1["❌ Clear error shown — no stale amount charged"]
+    B --> C{"⚙️ Payment Rail Resolved"}
+    C -->|Merchant has active Payout/Connected Banking service| D["✅ Internal Payout/Connected Banking Rail<br/>→ Lower service charge"]
+    C -->|No active internal rail| E["🌐 External Payment Gateway<br/>PhonePe PG / Razorpay PG / Cashfree PG<br/>→ Standard gateway fee"]
+    D --> F["💳 Bill Payment<br/>user pays the fetched amount"]
     E --> F
-    F --> G["Transaction Status<br/>tracked to a definitive success/failure state"]
-    G --> H["Settlement<br/>funds settle between platform and biller"]
-    H --> I["Reports<br/>payment history, fee breakdown by rail, & reconciliation"]
+    F --> G["📶 Transaction Status<br/>tracked to a definitive success/failure state"]
+    G --> H["🏦 Settlement<br/>funds settle between platform and biller"]
+    H --> I["📑 Reports<br/>payment history, fee breakdown by rail, & reconciliation"]
+
+    classDef gate fill:#4a148c,color:#fff,stroke:#ab47bc,stroke-width:1px
+    classDef good fill:#1b5e20,color:#fff,stroke:#43a047,stroke-width:1px
+    classDef warn fill:#e65100,color:#fff,stroke:#fb8c00,stroke-width:1px
+    classDef bad fill:#b71c1c,color:#fff,stroke:#e53935,stroke-width:1px
+    classDef service fill:#004d40,color:#fff,stroke:#26a69a,stroke-width:1px
+
+    class C gate
+    class D good
+    class E warn
+    class B1 bad
+    class F,G,H,I service
 ```
 
 **Key testing principle:** the amount charged at payment time must always match the amount
-fetched — if any time passes between fetch and payment, the platform must either re-validate the
-amount or clearly flag it as potentially stale, never silently charge an outdated figure. **Also**
+fetched. If any time passes between fetch and payment, the platform must either re-validate the
+amount or clearly flag it as potentially stale — never silently charge an outdated figure. Also
 verify the correct payment rail (internal vs. external PG) is selected and the correct
 corresponding fee is applied — see [`docs/business-overview.md`](./docs/business-overview.md)
 section 3 for the full rationale and [`docs/architecture-and-flow.md`](./docs/architecture-and-flow.md)
@@ -242,7 +255,7 @@ bbps-bill-payment-platform/
 ## 🤖 Support & Dispute Resolution
 
 BBPS issues (bill-fetch failures, payment disputes, account detail changes) are handled by the
-shared [AI Dispute Resolution Engine](https://github.com/ghanendra-sdet/ai-dispute-resolution-engine)
+shared <a href="https://github.com/ghanendra-sdet/ai-dispute-resolution-engine" target="_blank" rel="noopener noreferrer">AI Dispute Resolution Engine</a>
 — a single AI-powered support layer common across Collection, Payout, Connected Banking, BBPS,
-Reseller, and YOBO. It resolves ~80% of issues without human involvement, cutting average ticket resolution
-time from a 24–72 hour baseline to under 6 hours.
+Reseller, and YOBO. It resolves ~80% of issues without human involvement, cutting average ticket
+resolution time from a 24–72 hour baseline to under 6 hours.
