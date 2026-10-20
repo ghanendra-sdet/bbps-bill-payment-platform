@@ -9,9 +9,9 @@
 
 | Category | Tool | Why This Tool Specifically |
 |---|---|---|
-| **UI Automation** | Cypress + JavaScript | Strong network-interception support (`cy.intercept`) — essential here specifically because simulating biller timeouts, delayed status callbacks, and stale-amount scenarios is a core part of this module's test strategy, and none of those are easy to reproduce against a real biller on demand |
+| **UI Automation** | Cypress + JavaScript | Strong network-interception support (`cy.intercept`) matters here specifically because simulating biller timeouts, delayed status callbacks, and stale-amount scenarios is a core part of this module's test strategy, and none of those are easy to reproduce against a real biller on demand |
 | **API Testing & Automation** | Postman | Validates bill-fetch responses, payment payloads, and rail-selection decisions directly against the contract, independent of what any one screen renders |
-| **Performance Testing** | k6 | Load/spike testing for bill-fetch volume (section 5 below) — chosen to stay in the same JS ecosystem as Cypress, and because this platform's real traffic shape is bursty around biller due dates, not steady |
+| **Performance Testing** | k6 | Load/spike testing for bill-fetch volume (section 5 below), chosen to stay in the same JS ecosystem as Cypress, and because this platform's real traffic shape is bursty around biller due dates, not steady |
 | **CI/CD** | Jenkins / GitHub Actions | Automates the regression suite on a schedule/trigger — see section 4 for the suggested pipeline shape |
 | **Bug Tracking & Traceability** | JIRA, RTM | Full defect lifecycle tracking plus requirement-to-test-coverage traceability — see [`../sample-rtm.md`](../sample-rtm.md) |
 | **Version Control** | Git, GitHub | This repo itself; diagrams throughout are Mermaid, which GitHub renders natively with zero extra tooling |
@@ -23,7 +23,7 @@
 | **Manual / Functional Testing** | Full category-to-settlement regression suite | [`../regression-checklist.md`](../regression-checklist.md) |
 | **API Testing** | Bill-fetch, payment, and rail-selection contract validation, including negative cases (timeout, invalid reference) | [`../regression-checklist.md`](../regression-checklist.md) sections 1–2 |
 | **UI Automation** | Cypress spec covering category listing, bill fetch, timeout handling, and the stale-amount block | [`../automation/sample-bill-payment.spec.ts`](../automation/sample-bill-payment.spec.ts) |
-| **API Automation** | The same spec's `cy.intercept` usage doubles as automated API-contract verification — asserting the UI reacts correctly to specific biller response shapes (success, timeout, stale `fetchedAt`), not just that a button click "works" | [`../automation/sample-bill-payment.spec.ts`](../automation/sample-bill-payment.spec.ts) |
+| **API Automation** | The same spec's `cy.intercept` usage doubles as automated API-contract verification — asserting the UI reacts correctly to specific biller response shapes (success, timeout, stale `fetchedAt`), not just that a button click works | [`../automation/sample-bill-payment.spec.ts`](../automation/sample-bill-payment.spec.ts) |
 | **Performance Testing** | k6-based load/spike testing for bill-fetch volume around due-date clustering | Section 5 below |
 | **Biller-Integration / Negative Testing** | A dedicated test category treating timeout, stale amount, and invalid reference as first-class scenarios, not edge cases | [`../regression-checklist.md`](../regression-checklist.md) section 1; [`../sample-defect-report.md`](../sample-defect-report.md) |
 | **Regression Strategy & Prioritization** | Dual-rail payment selection and biller-failure modes both treated as dedicated test categories | [`../regression-checklist.md`](../regression-checklist.md) |
@@ -36,11 +36,17 @@
 
 ```mermaid
 flowchart TD
-    UNIT["Unit Tests<br/>(owned by the application dev team — out of this QA scope)"]
-    API["API Tests<br/>bill-fetch, payment, rail-selection, status contracts"]
-    UI["UI / E2E Tests<br/>Cypress — category → fetch → payment → status journeys"]
-    PERF["Performance Tests<br/>k6 — bill-fetch load/spike around due-date clustering"]
+    UNIT["⬜ Unit Tests<br/>(owned by the application dev team — out of this QA scope)"]
+    API["🔌 API Tests<br/>bill-fetch, payment, rail-selection, status contracts"]
+    UI["🖥️ UI / E2E Tests<br/>Cypress — category → fetch → payment → status journeys"]
+    PERF["📈 Performance Tests<br/>k6 — bill-fetch load/spike around due-date clustering"]
     UNIT --> API --> UI --> PERF
+
+    classDef outOfScope fill:#37474f,color:#fff,stroke:#90a4ae,stroke-width:1px
+    classDef inScope fill:#004d40,color:#fff,stroke:#26a69a,stroke-width:1px
+
+    class UNIT outOfScope
+    class API,UI,PERF inScope
 ```
 
 ## 4. CI/CD — Suggested Pipeline Shape
@@ -58,14 +64,22 @@ flowchart LR
     Lint --> API["API suite<br/>(bill-fetch, payment, rail-selection contracts)"]
     API --> UI["Cypress UI suite<br/>(category → fetch → payment → status)"]
     UI --> Gate{"All required checks pass?"}
-    Gate -->|Yes| Merge["Merge allowed"]
-    Gate -->|No| Block["Merge blocked — failure surfaced on the PR"]
-    Merge --> Nightly["Nightly: k6 bill-fetch load/spike run<br/>(too slow/expensive for per-PR gating)"]
+    Gate -->|Yes| Merge["✅ Merge allowed"]
+    Gate -->|No| Block["❌ Merge blocked — failure surfaced on the PR"]
+    Merge --> Nightly["🌙 Nightly: k6 bill-fetch load/spike run<br/>(too slow/expensive for per-PR gating)"]
+
+    classDef gate fill:#4a148c,color:#fff,stroke:#ab47bc,stroke-width:1px
+    classDef good fill:#1b5e20,color:#fff,stroke:#43a047,stroke-width:1px
+    classDef bad fill:#b71c1c,color:#fff,stroke:#e53935,stroke-width:1px
+
+    class Gate gate
+    class Merge good
+    class Block bad
 ```
 
-## 5. Performance Testing, In Depth
+## 5. Performance Testing, in Depth
 
-Bill-payment traffic isn't steady — it clusters predictably around **biller due dates**, which
+Bill-payment traffic isn't steady. It clusters predictably around **biller due dates**, which
 differ by category and biller. A platform integrating dozens of billers across 25+ categories
 sees genuinely bursty load, not a flat daily average, and that shape is what this platform's
 performance testing specifically targets.
@@ -114,20 +128,20 @@ export default function () {
 }
 ```
 
-**What this script is actually proving:** not "does one fetch succeed" (the functional suite's
-job) but whether the fetch path holds its latency and error-rate targets specifically during the
-10x due-date spike — and, just as importantly, whether that added latency ever pushes a
-successful-but-slow fetch response close enough to the freshness window (section 2 of
+**What this script actually proves:** not "does one fetch succeed" — that's the functional
+suite's job — but whether the fetch path holds its latency and error-rate targets specifically
+during the 10x due-date spike, and, just as importantly, whether that added latency ever pushes
+a successful-but-slow fetch response close enough to the freshness window (section 2 of
 `architecture-and-flow.md`) to create a false stale-amount block for a customer who fetched and
 paid promptly during a busy period.
 
 ## 6. Real-World Grounding — Industry Context
 
 This project's architecture and terminology are deliberately grounded in the real Bharat Connect
-(BBPS) ecosystem, not invented for the portfolio — see
+(BBPS) ecosystem, not invented for the portfolio. See
 [`architecture-and-flow.md`](./architecture-and-flow.md) section 1 for the full BBPCU/BBPOU/COU/
 BOU mapping.
 
 **Sources:**
-[Bharat Connect rebrand, BBPCU/BBPOU/COU/BOU structure — Wikipedia](https://en.wikipedia.org/wiki/Bharat_Connect),
-[Bharat Connect participant roles and scope — Mindgate](https://www.mindgate.solutions/guides/bharat-connect-bbps/).
+<a href="https://en.wikipedia.org/wiki/Bharat_Connect" target="_blank" rel="noopener noreferrer">Bharat Connect rebrand, BBPCU/BBPOU/COU/BOU structure — Wikipedia</a>,
+<a href="https://www.mindgate.solutions/guides/bharat-connect-bbps/" target="_blank" rel="noopener noreferrer">Bharat Connect participant roles and scope — Mindgate</a>.
