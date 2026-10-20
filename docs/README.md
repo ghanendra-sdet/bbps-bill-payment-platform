@@ -2,13 +2,9 @@
 
 > If you're approaching this repo the way a curious QA engineer, automation tester, or
 > tech-enthusiast would — "what is this, how does it actually work, who's involved, what does it
-> depend on" — this page answers that directly, one question at a time.
->
-> **Update:** this repo now has its own `architecture-and-flow.md`, with real Mermaid sequence
-> diagrams grounded in the actual BBPCU/BBPOU/COU/BOU Bharat Connect participant structure — see
-> below. `business-flow.md`, `feature-modules.md`, and `service-architecture.md` (the remaining
-> doc split this portfolio's flagship fintech repos use) are still a reasonable future expansion
-> if this repo's scope grows further, but aren't needed yet at BBPS's current depth.
+> depend on" — this page answers that directly, one question at a time. `architecture-and-flow.md`
+> below carries the real Mermaid sequence diagrams, grounded in the actual BBPCU/BBPOU/COU/BOU
+> Bharat Connect participant structure.
 
 | Your Question | Answer Lives In |
 |---|---|
