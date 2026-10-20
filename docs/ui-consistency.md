@@ -4,12 +4,12 @@
 > Status, and Reports (see [`business-overview.md`](./business-overview.md)). This document
 > covers whether it's represented **consistently** across all of them.
 
-## Why This Matters More Here Than in Most Modules
+## What's at Stake When Status Display Drifts
 
-BBPS's central risk is biller-integration failure (see `business-overview.md` section 4) —
+BBPS's central risk is biller-integration failure (see `business-overview.md` section 4):
 timeouts, stale amounts, ambiguous callbacks. When something goes wrong on the biller's side, the
 UI is the only signal a customer has for what actually happened. Inconsistent status
-representation here doesn't just look sloppy — it directly determines whether a customer retries
+representation here doesn't just look sloppy. It directly determines whether a customer retries
 a payment that already went through, or gives up on one that didn't.
 
 ## 1. Status Representation Consistency

@@ -5,13 +5,12 @@
 > This document lists the shared services BBPS depends on, distinct from BBPS-specific modules
 > like Bill Fetch and Bill Payment (see [`business-overview.md`](./business-overview.md)).
 
-## Why "Shared Platform" Matters for Testing
+## A Shared-Service Defect Doesn't Stay Contained to One Product
 
-A defect in a shared service doesn't stay contained to one product. A bug in the company-wide
-**Settlement Engine**, for example, doesn't just affect BBPS's biller settlement — it silently
-affects Collection's and Payout's settlement correctness too. This is why a change to a shared
-service should trigger **cross-product smoke testing**, not just regression scoped to whichever
-product initiated the change.
+A bug in the company-wide **Settlement Engine**, for example, doesn't just affect BBPS's biller
+settlement — it silently affects Collection's and Payout's settlement correctness too. This is
+why a change to a shared service should trigger **cross-product smoke testing**, not just
+regression scoped to whichever product initiated the change.
 
 ## Shared Platform Services (Company-Wide)
 
