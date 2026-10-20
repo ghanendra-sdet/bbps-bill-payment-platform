@@ -29,47 +29,41 @@ plan or automation suite actually needs, plus which skill category (see
 
 ## 3. Payment Execution: Gateway vs. Internal Payout Rail
 
-Once a bill is fetched, a customer/merchant can actually **pay it two different ways** — this is
-a core commercial and architectural decision, not just a UI choice:
+Once a bill is fetched, a customer/merchant can pay it two different ways — a core commercial and
+architectural decision, not just a UI choice:
 
 | Path | How It Works | Fee |
 |---|---|---|
 | **External Payment Gateway** | Routed through a third-party PG (e.g. PhonePe PG, Razorpay PG, Cashfree Payment Gateway) | Standard gateway fee applies |
 | **Internal Payout / Connected Banking Rail** | If the merchant already uses this platform's Payout or Connected Banking service, the bill payment executes through that existing internal rail instead of an external gateway | **Lower service charge** — a commercial incentive for merchants already on-platform |
 
-```
-Bill fetched, ready for payment
-        │
-        ▼
-Payment method resolved
-        │
-        ├──▶ Merchant has active Payout/Connected Banking service
-        │         │
-        │         ▼
-        │    Routed through Internal Payout/Connected Banking Rail
-        │         │
-        │         ▼
-        │    Lower service charge applied
-        │
-        └──▶ No active internal rail available
-                  │
-                  ▼
-             Routed through External Payment Gateway (PhonePe PG / Razorpay PG / Cashfree PG)
-                  │
-                  ▼
-             Standard gateway fee applied
+```mermaid
+flowchart TD
+    Bill["📋 Bill fetched, ready for payment"] --> Resolve{"⚙️ Payment method resolved"}
+    Resolve -->|Merchant has active Payout/Connected Banking service| Internal["✅ Routed through Internal<br/>Payout/Connected Banking Rail"]
+    Resolve -->|No active internal rail available| External["🌐 Routed through External Payment Gateway<br/>(PhonePe PG / Razorpay PG / Cashfree PG)"]
+    Internal --> LowFee["Lower service charge applied"]
+    External --> StdFee["Standard gateway fee applied"]
+
+    classDef gate fill:#4a148c,color:#fff,stroke:#ab47bc,stroke-width:1px
+    classDef good fill:#1b5e20,color:#fff,stroke:#43a047,stroke-width:1px
+    classDef warn fill:#e65100,color:#fff,stroke:#fb8c00,stroke-width:1px
+
+    class Resolve gate
+    class Internal,LowFee good
+    class External,StdFee warn
 ```
 
 **Why this matters for testing:** the same bill payment can legitimately cost the merchant a
-different fee depending on *which rail* executed it — this is not a bug, but it means fee
+different fee depending on *which rail* executed it. That's not a bug, but it means fee
 calculation, receipt/reporting line items, and rail-selection logic all need explicit test
 coverage for both paths, and for the correct rail being chosen when a merchant qualifies for the
 internal one.
 
-## 4. Why Biller Integration Risk Is the Central Testing Theme
+## 4. Biller Integration Risk Is the Central Testing Theme
 
-Unlike a self-contained product, a BBPS platform's reliability partly depends on **systems it
-doesn't own** — each biller's own backend, and (per section 3) potentially an external Payment
+Unlike a self-contained product, a BBPS platform's reliability partly depends on systems it
+doesn't own: each biller's own backend, and, per section 3, potentially an external Payment
 Gateway too. This creates a distinct risk profile:
 
 - A biller can time out or be temporarily unavailable during fetch
@@ -79,9 +73,9 @@ Gateway too. This creates a distinct risk profile:
 - An external Payment Gateway (when that path is used) introduces its own latency/availability
   profile, separate from the biller's
 
-Because of this, QA strategy for BBPS treats **biller and payment-rail failure modes** as
-first-class scenarios, not edge cases — a platform that only tests the happy path will pass
-internal testing and still fail in production the moment one biller (or one PG) has a bad day.
+Because of this, QA strategy for BBPS treats biller and payment-rail failure modes as
+first-class scenarios, not edge cases. A platform that only tests the happy path will pass
+internal testing and still fail in production the moment one biller, or one PG, has a bad day.
 
 ## 5. Glossary
 
@@ -118,7 +112,7 @@ for the engines this product consumes rather than reimplements: Authentication, 
 Engine, Reconciliation Engine, Commercial Engine, Notification Service, Scheduler/Background
 Workers.
 
-**Internal platform dependencies (new, per section 3):**
+**Internal platform dependencies (per section 3):**
 
 - **Payout Engine** — one of the two possible payment execution rails for a bill payment, when
   the merchant already has an active Payout relationship
