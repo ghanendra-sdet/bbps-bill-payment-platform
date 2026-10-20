@@ -21,7 +21,7 @@
 | Bill Fetch | 12 | 11 | 1 | Stale-amount protection gap found |
 | Bill Payment | 10 | 9 | 1 | Payment proceeded on a stale fetched amount |
 | Transaction Status | 8 | 8 | 0 | — |
-| Settlement | 4 | 4 | 0 | 1 blocked — test settlement window not configured |
+| Settlement | 4 | 3 | 0 | 1 blocked — test settlement window not configured |
 | Reports | 4 | 4 | 0 | — |
 
 ## Conclusion
